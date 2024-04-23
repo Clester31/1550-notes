@@ -350,11 +350,41 @@ Topics Covered:
   * our index is the frame number
 3. Acquire the frame number and combine it with offset to get our physical address
 
-###
+### Costs/benefits of IVPs
 
+* Reduced memory overhead compared to notmal page tables, efficient memory management for systems with large physical memory.
+* Comes at the cost of performance since searching through the IVP takes O(N) time
 
+## Caches
 
+* We know that caches are small memories that can be used to speed up common operations
+* They expliot temporal and spatial locality
+  * Temporal locality - Nearness in time (like using the same value again and again)
+  * Spatial locality - Nearness in location (use a value in the same location again and again)
+* How can we make use of caches when paging?
+  * Page to Frame translations exploit temporal locality, as we look up our page to frame mapping in the same location since its stable over time
+ 
+### Translation Lookaside Buffer
 
+* How about we use a cache known as the TLB in order to store recently used page to frame mappings
+* The benefit of this is that the cache can be as small as 16-64 entires, which is small enough to live on chip
 
+## Demand Paging
+
+* General Process
+  * We first launch a process but give it no RAM
+  * Next, we set all our page table entries to be invalid
+  * Before we launch our program, set $PC to the processes desired entry point
+  * CPU then tries to fetch the first instruction from the process
+  * Now we have an invalid PTE and the page fault handler raises a page fault
+ 
+## Page Fault Handler
+
+* The page fault handler will determine where the faulting virtual address lies
+* a bad page is a page who is not in the code or data segments (probably beyond brk and the stack pointer)
+  * We will segault
+* A good page is one that should be in ram but isnt
+  * This is where demand paging comes in, we will find an empty frame and insert it in there
+  * If we have to evict something, that means our frames are full   
 
 
