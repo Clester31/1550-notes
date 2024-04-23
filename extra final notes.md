@@ -1,3 +1,6 @@
+Here are more up to date and accurate notes that go over stuff based off topic
+You can probabliy ignore the last bit of scheduling section since we probably won't be tested on it
+
 # Last Bit of Scheduling
 
 * Topics covered:
@@ -188,6 +191,15 @@
 
 # Memory Management
 
+Topics Covered:
+* Degrees of multiprogramming
+* Partitioning
+* Protection/relocation problems
+* Swapping
+* Dynamic allocation
+* Free space tracking with bitamaps and linked lists
+* Overlays
+
 ## Why do we manage memory?
 
 * Its limited, volatile, and we wish to share it
@@ -228,6 +240,96 @@
 
 * We need 1 bit per chunk to indicate whether we are free or in use
   * Magic number is usually 4kb as its small enough so that if we waste it isnt harmful but also easy to subdivide
-* Increasing chunk size will ensure that a significant portion of our memory is not taken up by the free bit  
+* Increasing chunk size will ensure that a significant portion of our memory is not taken up by the free bit
+
+## Free space tracking - Linked lists
+
+* Using a sparse data structure like a linked list allows us to have a place to store our free or "interesting" entries, allowing the programmer an easy way to track what is free and what isn't
+
+## Overlays
+
+* Idea: memory is small, we want to have a way to make it seem like we have more memory than we have
+  * VN doesnt say we need the entire program in RAM ahead of time, so just store it in disk 
+* Overlays are dynamic hand written loading of subset of a program's code and data
+* Divide programs into modules that are swapped in and out of memory as needed, load a module into memory when its needed for execution
+* Essentially just moving to disk
+* Issue: Tedious and error prone, must be done entirely by the programmer
+
+# Virtual Memory and Paging
+
+## Solving the virutalization of memory
+
+* We want to establish a mapping between a virtual address and its physical address that:
+  * preforms it's calculations in O(1) time
+  * Does not require collisions to occur unless memory is full
+  * The mapping object (page table) is small enough to fit in RAM, or preferrably on the processor chip itself
+ 
+* We also want to automatically determine the portions of the virtual address space that must be currently loaded into memory
+
+## Why do we have to virtualize memory?
+
+* Memory is finite, we could have an instance where we run out of memory space for our pograms. We can use virtual memory as a way to choose a file that we need least and store it to disk, giving the user the illusion that they have more RAM than they do
+* Virtual memory also allows for each process to have its own virtual address space, preventing an instnace where we could have an unauthorized memory access
+
+## Page table
+
+* Genereal idea: keep track of the mapping between virtual memory addresses and physical memory addresses. Each entry in the page table will correspond to a page in virtual memory along with its frame number in physical memory.
+* Give the illusion of each process hainvg its own dedicated memory
+
+## How to translate from virtual to physical
+
+![image](https://github.com/Clester31/1550-notes/assets/91839534/4a16dcfc-4be0-40d2-8a0a-5f836f257707)
+
+1. Look at the virtual address, and split it up into a page number and offset
+  * Page number = VA / page size
+  * offset = VA % page size
+2. Next we need the to get the frame number which is just the page table indexed by the page number
+  * page_table[page #]
+3. Finally we calculate the physical address, which is the frame number combined with the offset
+  * PA <- Frame # * Page Size + offset
+
+## Time complexity of a page table
+
+* Work done in our page table should be in O(1) time, but operations such as multiplication and division can be done by simply bit shifting
+
+## What is in each page table entry
+
+* A page table entry is composed of three different segments:
+   * Protection bits: these are bits that specifiy whether or not we can read/write/execute code/data in that page
+     * Marking a stack page as no-execute mitigates buffer overrun vunerabilities (just like in mmap)
+   * D/R/V bits:
+     * Dirty bit: 1 if a page has been modified since loaded
+     * Reference bit: 1 if a page has been used in a page to frame translation
+     * valid: 1 if this PTE represents a page in a frame or if this is just taking up space in our page table
+   * Page frame number
+ 
+## Multilevel page tables
+
+* Issue: although we have chunked our virtual address space into pages, our table is still too large on a per-process basis
+  * We notice that valid entries are quite rare if we assume that RAM is smaller than the address space demands of every process on our system
+  * What we should do is try to represent our page table as a sparse data structure: One where we only need to keep track of the valid entries
+* Multilevel page tables provide a solution to this issue. They can be represented as trees with fixed depth
+  * This means our worst case will only be the depth of the tree. 
+ 
+### Structure of a multi-level page table
+
+![image](https://github.com/Clester31/1550-notes/assets/91839534/d6e6f1c9-39e1-4b97-86f7-3559d092ed76)
+
+* We have a root that is always present and points to leaves
+* Each leaf contains multiple PTEs that store the page to frame mapping
+* How is this sparse?:
+  * If we have an entire leaf that only contains invaild PTE's, we can just omit it.
+ 
+### MLPT translation
+
+1. Get our page number by doing VA / page size
+2. Split up the page number into two parts
+  * The first half will bee the index into our first level page table
+    * The first level frame will point to its entry point into the second level page tale 
+  * The second half will be the index into the second level page table
+3. We then use the frame number from the second page table as the first part of our physical address
+4. Add the offset
+
+
 
 
