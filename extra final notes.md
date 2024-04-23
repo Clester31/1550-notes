@@ -330,6 +330,31 @@ Topics Covered:
 3. We then use the frame number from the second page table as the first part of our physical address
 4. Add the offset
 
+## Inverted Page Tables
+
+* Issue: we have vastly more pages than there are frames in a typical system
+* Solution: Lets build a page table that is indexed by the frame number that will tell us what is in that frame
+* Called inverted since its the reverse of a typical page table
+* Now we could say store in index 1 that page 7 lives in frame 1
+  * Issue: every process is now going to have a page 7
+  * How do we solve this, express whose page 7 it is by using its process ID
+  * This means we only need one inverted page table per system
+ 
+### Inverted page table translation
+
+![image](https://github.com/Clester31/1550-notes/assets/91839534/802f79f8-7227-4346-b365-dd5c574a8368)
+
+1. We still have the same VA structure as before, but now we must take into acount the process id
+2. Linear search through the inverted table
+  * Our key is (PiD, PageNum)
+  * our index is the frame number
+3. Acquire the frame number and combine it with offset to get our physical address
+
+###
+
+
+
+
 
 
 
